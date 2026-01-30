@@ -3,376 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ממיר DXF ל-KML/GeoJSON | הנדסת ברדה</title>
-    
-    <!-- Proj4js for coordinate transformation -->
+    <title>ממיר DWG/DXF ל-KML/GeoJSON | הנדסת ברדה</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.min.js"></script>
-    
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
-            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
-            padding: 40px;
-            max-width: 650px;
-            width: 100%;
-            backdrop-filter: blur(10px);
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .logo img {
-            max-width: 280px;
-            height: auto;
-            border-radius: 8px;
-        }
-        h1 {
-            color: #1a1a2e;
-            text-align: center;
-            margin: 10px 0;
-            font-size: 28px;
-            font-weight: 700;
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .subtitle a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        .form-group {
-            margin-bottom: 24px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 15px;
-        }
-        .help-text {
-            font-size: 12px;
-            color: #888;
-            margin-top: 6px;
-        }
-        select {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e8e8e8;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.3s;
-            background: white;
-            cursor: pointer;
-        }
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        }
-        .file-upload {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 45px 30px;
-            border: 3px dashed #d0d0d0;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .file-upload:hover {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #f0f2ff 0%, #e8ebff 100%);
-            transform: translateY(-2px);
-        }
-        .file-upload.dragover {
-            border-color: #764ba2;
-            background: linear-gradient(135deg, #f0e6ff 0%, #e8dfff 100%);
-            transform: scale(1.02);
-        }
-        .file-upload.has-file {
-            border-color: #4caf50;
-            border-style: solid;
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-        }
-        .file-upload input[type="file"] {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .file-upload-icon {
-            font-size: 52px;
-            margin-bottom: 12px;
-        }
-        .file-upload-text {
-            color: #555;
-            font-size: 15px;
-        }
-        .file-name {
-            margin-top: 12px;
-            padding: 10px 20px;
-            background: white;
-            border-radius: 8px;
-            color: #2e7d32;
-            font-weight: 600;
-            display: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .file-name.show {
-            display: block;
-        }
-        button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-        }
-        button:active:not(:disabled) {
-            transform: translateY(-1px);
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .result {
-            margin-top: 24px;
-            padding: 24px;
-            border-radius: 16px;
-            display: none;
-            animation: fadeIn 0.4s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .result.success {
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            border: 2px solid #4caf50;
-            display: block;
-        }
-        .result.error {
-            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-            border: 2px solid #f44336;
-            display: block;
-        }
-        .result h3 {
-            margin: 0 0 12px 0;
-            color: #2e7d32;
-        }
-        .result.error h3 {
-            color: #c62828;
-        }
-        .result p {
-            margin: 6px 0;
-            color: #555;
-        }
-        .download-btn {
-            display: inline-block;
-            padding: 14px 32px;
-            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            margin-top: 16px;
-            font-weight: 600;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
-        }
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
-        }
-        .info-box {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 28px;
-            font-size: 14px;
-            border: 1px solid #90caf9;
-        }
-        .info-box strong {
-            color: #1565c0;
-        }
-        .format-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .format-option {
-            padding: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            background: white;
-        }
-        .format-option:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-        .format-option.selected {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #f0f2ff 0%, #e8ebff 100%);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-        }
-        .format-option input {
-            display: none;
-        }
-        .format-option .icon {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-        .format-option .name {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        .format-option .desc {
-            font-size: 12px;
-            color: #888;
-        }
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 30px;
-        }
-        .loading.show {
-            display: block;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 15px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .stats {
-            display: flex;
-            gap: 20px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-        .stat {
-            background: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #667eea;
-        }
-        .stat-label {
-            font-size: 12px;
-            color: #888;
-        }
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #555;
-            font-size: 13px;
-        }
-        footer a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        .footer-contact {
-            margin-top: 10px;
-            font-size: 15px;
-            font-weight: 600;
-        }
-        .footer-contact a {
-            color: #2e7d32;
-        }
-        .github-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: #24292e;
-            color: white;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 13px;
-            transition: all 0.3s;
-        }
-        .github-link:hover {
-            background: #000;
-            transform: translateY(-2px);
-        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; }
+        .container { background: rgba(255, 255, 255, 0.95); border-radius: 24px; box-shadow: 0 25px 80px rgba(0,0,0,0.4); padding: 40px; max-width: 650px; width: 100%; }
+        .logo { text-align: center; margin-bottom: 20px; }
+        .logo img { max-width: 280px; height: auto; border-radius: 8px; }
+        h1 { color: #1a1a2e; text-align: center; margin: 10px 0; font-size: 28px; font-weight: 700; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
+        .badge-new { display: inline-block; background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 8px; }
+        .form-group { margin-bottom: 24px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 15px; }
+        .help-text { font-size: 12px; color: #888; margin-top: 6px; }
+        select { width: 100%; padding: 14px 16px; border: 2px solid #e8e8e8; border-radius: 12px; font-size: 15px; background: white; cursor: pointer; }
+        select:focus { outline: none; border-color: #667eea; }
+        .file-upload { position: relative; display: flex; flex-direction: column; align-items: center; padding: 45px 30px; border: 3px dashed #d0d0d0; border-radius: 16px; background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%); cursor: pointer; transition: all 0.3s; }
+        .file-upload:hover { border-color: #667eea; transform: translateY(-2px); }
+        .file-upload.dragover { border-color: #764ba2; transform: scale(1.02); }
+        .file-upload.has-file { border-color: #4caf50; border-style: solid; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
+        .file-upload input[type="file"] { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .file-upload-icon { font-size: 52px; margin-bottom: 12px; }
+        .file-upload-text { color: #555; font-size: 15px; }
+        .file-types { margin-top: 10px; font-size: 13px; color: #888; }
+        .file-types span { background: #e8e8e8; padding: 3px 10px; border-radius: 12px; margin: 0 4px; }
+        .file-types span.new { background: #c8e6c9; color: #2e7d32; }
+        .file-name { margin-top: 12px; padding: 10px 20px; background: white; border-radius: 8px; color: #2e7d32; font-weight: 600; display: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .file-name.show { display: block; }
+        button { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+        button:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .result { margin-top: 24px; padding: 24px; border-radius: 16px; display: none; }
+        .result.success { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; display: block; }
+        .result.error { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border: 2px solid #f44336; display: block; }
+        .result h3 { margin: 0 0 12px 0; color: #2e7d32; }
+        .result.error h3 { color: #c62828; }
+        .download-btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; text-decoration: none; border-radius: 10px; margin-top: 16px; font-weight: 600; }
+        .info-box { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px; padding: 16px 20px; margin-bottom: 28px; font-size: 14px; border: 1px solid #90caf9; }
+        .info-box strong { color: #1565c0; }
+        .format-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .format-option { padding: 16px; border: 2px solid #e0e0e0; border-radius: 12px; cursor: pointer; text-align: center; background: white; }
+        .format-option:hover { border-color: #667eea; }
+        .format-option.selected { border-color: #667eea; background: linear-gradient(135deg, #f0f2ff 0%, #e8ebff 100%); }
+        .format-option input { display: none; }
+        .format-option .icon { font-size: 28px; margin-bottom: 8px; }
+        .format-option .name { font-weight: 600; color: #333; }
+        .format-option .desc { font-size: 12px; color: #888; }
+        .loading { display: none; text-align: center; padding: 30px; }
+        .loading.show { display: block; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .stats { display: flex; gap: 20px; margin-top: 16px; flex-wrap: wrap; }
+        .stat { background: white; padding: 12px 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 24px; font-weight: 700; color: #667eea; }
+        .stat-label { font-size: 12px; color: #888; }
+        footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #555; font-size: 13px; }
+        footer a { color: #667eea; text-decoration: none; }
+        .footer-contact { margin-top: 10px; font-size: 15px; font-weight: 600; }
+        .footer-contact a { color: #2e7d32; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">
-            <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCABwAUADASIAAhEBAxEB/8QAHQAAAgIDAQEBAAAAAAAAAAAAAAgGBwEFCQQCA//EAFsQAAECBQIDBAQEDgwKCwAAAAECAwAEBQYRByEIEjETQVFhFCIycYGRlbMJFRYYJjZCUld0dbLS0xcjMzdDVVZicpKhsSU0Y4KTlKKjtMEnNThERVRzg5bR8P/EABgBAQEBAQEAAAAAAAAAAAAAAAACAQME/8QALREAAgIABQMCBgEFAAAAAAAAAAECEQMSIUFhIjFRcaEEMoGRsfAjJEJi0eH/2gAMAwEAAhEDEQA/AFnggggWEEEEAEEEEAEEEEAEEEEAEEEEAEEEEAEEEEAEEEEAEEEEAEEEEAEEEEAEEEEAEEESXT+xLpvyrfS22KS9OuJ/dXNktMjxWs7J93U9wJgCNQDJUEpGSeg8YbSgcOmntjUtqt6t3Ww4e+VS+ZeXJHVAVs46f6PKfKJhptqLpm9eMvaWkVhidePrP1BqVTKstNDq4txQLqgM96ckkAdYGWJzT7KvKopSqn2lX5xKuhl6a84D/VSY9Uxp1qDLt9pMWJdDKB1UukvpH9qYeLWLWOn2Vc9DtKmpZn69Up6XafaUcolGFrAK1435iD6qfhO2Ar8tZNZG9NNQrcpNVkm3KHVGFrm5hAUXpdQUEhQGcKSO8Yzjp0wRliAz0nOSL5YnZR+VdHVDzZQofAY/COj+rV50i37PlbjqNs/VTbDwSqZelg2/2KF45HOzX6q0HPtcwxkeMVEiyuHLV1PZ2nUGaBWXd0sSqvR3CrHs+jueooD/ACY+GBtiexgxbmr2gN76fNPVFLSK3RG9zPSaTltPi43uUe/dI++ipDA1BBBBABBBBABBBBABBBBABBBBABBBBABBBBABBBBABBBBABBBBABBBBABBBBABBBBABBBBABBBFi6A6Yzup96opoUtikygS9U5lPVDZOyE93Osgge4nfEAbzh50QqWpc+KpUXHadbMu5h2ZCcLmVDq21nbyKug8ztFs6oa6WpppR1WFpDISSpiWBbcnEICpdhXQkZ/dnNt1HI8ebcCV8QkrqKza8rp7pRaU2xRxLBqanJZaEYbxgMN5UCAR7Su/OM+1lZP2BtXP5Ez3+la/SgZ3IdW6xcl63E3MVWenqzVZtxLTZcWVrUpRwlCE9252SkY8obqnNUjhl0QM5OIYmbwq4GUk5Dkxy5CMj+CaByT3knoVACP8KGh1dod4v3XfVGXIqp6AKbLvKQoqdUCC76pOOVPTPerP3MRnX6y9ZdSdQZurCy6imly5MvTWS60OVkH2iOf2lH1j7wO4QMKetKq1Ct6u0SsVabcm5+crks6+8s7rUXk5Pl7u6Lw+iCH7LLW6/4i9+eIg1jaIaqyF70Gem7NnGpeWqUu86sutYShLqSo+13DJi4uM3Tu9L1uO3pm16DMVNqWlHG3lNrQAhRUCB6yhAEU4RNVJcJOlV3rRMUqoBTNMU/ulKl5CpdWdileTjzON+YYrDiF0zm9L75XKy/aqpE4S/S5nO/KDugn79BIHu5T3x9N6E6wNOoeZs6otONqC0LQ80FJI6EHn2MNJc9nXFqvw9Ipl4UZym3jJIK2O1KRzzDYwFApJAS6k4PcCTt6ogCiNF+JS5rVeapl4uTNxUMgIK3DzTUuPFKj+6DH3Kj7iOkTjV/RS2dQrbVqNo+5LuOPpLr0hL+q1MEe1yJ/g3R3oOAfAHrS40G1d/kRP8A+la/TixdCbc100vucTTFlVOZo80tIqMiXmsOJz7aPXwHAOh7+h26DWLm806y8tl5tbbjailaFDBSR1BHcY+cQ2nGRpG2/IOamW3IqbeAC6zLJTgqSf4fHcodF/1u5RKliAsxBBBA0II9tBpU/XK1J0aly6pidnHkssNpHtKUcD3e+H4tnh+07l7FpNAr9AlqpMyaSt6bC3GnHHV7rPOhSVFPcATgACNy9NkuSujn1BHQiY4cNHHWVNptJTJI2W3UZnKfPdwj4wYVDiT0iXpdcMqqnzD07RKlzGUW7jtG1JxzNqIGCRkEHbI90S5U0ilqVNBDt8PmgdvSemKxfNEYn6hWwh59l7IVLNjdDaVAhSVd5II3OO6Jl9bpo1/IxHyhNfrYqSp0SpJq0c8oIdzUXhXsipUh9yzkzFEqaEEsNqmFvMOEDZKu0JUM+IO3gYXrQDSmfvbVJdGq8o4xT6K8VVfPcUKIDPvUoEe4KI6RkdZUU3UcxVEEdGKzoPpLVqg7PztmyvpDpysszD7KSfHkbWlI+AR5PrddG/5Go+UJr9bAyznlBDNcV9paR6f2/LUe3baaYuSfUHELE7MOGXYSd1lK3CMqI5RkffHuiYcLuh9FOnb9ZvijMz0xXmk9nLTCd2JbPMkjG6VqICsgggcvTeEepNrYN1V7iawQ2nE9oNZtu6ezN22dIOUx+nqQqYYD7jrbralBJOFkkKBIOxx12jWcG2kMnWZWave6qc1NSDiFytPlZhsKQ6CClx0g9RjKR58x7hCPVfAk0kn5FegjoaeHbRskn6jG9zn/AB+a/WxW+uHDJbKLVnKzYLL9Pn5JtTxklPKeafSkZUkFZKkqwDjcg9Mb5GSlStmx1dCdQRgRKdK7KqN/3xIW3TklJfVzPvcuQwyMc6z7h08SQO+KjHM6RkpZVbIvBHRWc0F0onZaSZnbQl3jJyyJdDiH3WVKSkYBV2ak8yvM5MaqrcNWkU7JrYl7emKc4oEB+Xn3ytPmA4pSfjEYE7Of8EWHqFpNX7Y1YbsCVSajMTi0fS51KeXt21kgKI7sYVzeHKT0hxqHw/6btWXSKDW7fYqb8g2eeb7Rxpx1xW61FTakkjPQEnAxBaxzISeWWU57QR0N+t00a/kYj5Qmv1sRjUzSbQiw7Nn7kqdoNBEs2eya+mM1zPOn2G0/tvUn4hk90ZJ5VbNWroRmNxb11XRbrTrNv3JWKQ28Qp1EjOuMBZHQkIIycQ1PCpotRpyyp25rzoctMprzZTKSbyCQzLE5Chk5BUQCDnIAG+5iyneHTRtaCn6jwMjGRUZr9bFNUSpJiQfsm6k/hBuz5YmP04P2TdSfwg3Z8sTH6cWZxPaHy+nCJa4bcfeeoM072LjTyuZcs4QSkc33SSAcE7gjcnIiV8G+kUnWJSave6qa1MyLqFytPlphvmS4CClx0g9RglI8+Y9wjIdSdbGzqNclEHU3UnAH7IN2fLEx+nGVam6k/hCuz5YmP04d9fDro2rm+w1Aye6oTQx/vYXDio0Qp2nbMncVrrmDRpp70d6XeXzmXcIJThR3KSAeu4I6nO0uSXc1LMVcNTdSfwhXZ8sTH6cNZxa6s3lpzX6FJ2xNSrLU5LOOvB6XS4SoKwMZ6Qk8M59EC+2y1vxF388RRjIf9c/q1/GVN/1BETPRLiQvOr6mUei3dNST1MqLvopLcsltSHF7NqyP5/KD5KJ7oWKPuXdcl5ht9lxTbrSwtC0nBSoHII84ChvuKHVbUzTXUBqSotQkk0aflUzEqHJJKyhQPK4gqPUgjm9yxFTfXQat5/6zpvyeiLU4qG2r64dLV1CbQn0iX7B90p6IS+gJcR8DobHwQoMDBwOGrXOs39ds5Zl+GRmkVGVWJMpl0tpUpIJcaUBsoKQSd/vcb5heNcrIc0+1LqlujnMmlfbyC1dVy690b95G6SfFJiL2xWJy3rjp1dp6yiap8y3MNEHHrJUDg+Rxg+RhouOSlSlcsu0dRKb67TmGCsDdbTyO1aJ8hyq+FcAKZBBBAo/anzk3Tp9ifkJl6VmmFhbLzSyhaFDoQRuDFryfElq+xLoZ+qZp3lGOdyQYUo+88m584rizKS1X7upFDenPQ0VCdali/wAvN2fOsJ5sZGeviIea5dJLKtLQK56DTKW2rNLefdm3khT7zzaCtC1K8lAEAYA8NzCdxhnfYmOs1AjnCdrPcuoNXqlv3UZaYmZeXEzLzLTQbJTzBKkqA2O6kkEY74+OPhtB0xozpHrIrCAD3gFpzP8AcIrDgL31Vqv5HX863Fo8e/71dI/LLfzTsZj0oxa3r8m4Lucl6/gtnRKfmappFas/NuKcmHaWwXFqOSohAGT5nEK7qrxB6m2xqtX6PTqpJqp8hPraZYdkmyOQHZJUAFH35zDL8PSgrRC0CD/4W1/dCMcRss5L64XYh0FKlVBS8EdygFA/ERG4j/qK9ScJfxfYfzSu6heuntGufsEsLn5YLcbSchCwSlQHlzJOPKEx1qu65dPOI26py0au/THHnmlupQAptwqaQo8yFApVuT1HecQ1vDJT5im6E2tLzSShxUoXsEdEuLUtP9ihCRcQ1XZretV0z0usONenFhKgdiG0hvP+zGYiy42nJuD1Ybsk7fExq8lxKlV6UWAclJpzOD5HCYeWjTczXLPkp5Lpk5mekW3gttIV2SloByAoEHBPeI5biOoWnf2gW/8AkyX+aTFtXBkN1NHN3UmpVuqX3WZm4aiuo1JM2408+oABXIopGANgNtgOgi5eF7V6/V39bVkTlZM7RHSqXDL7SFLQgNqKQHMc2xAwCSMbRSmon2/3F+VJn51US3hg/f6tT8ZX80uJ+G1SR0+J3Y53FKP+gK6vxZHzqISSwNX9Q7HkDTreuJ5mSzzJlnmkPNoJ68oWDy+4Yh3OKFJVoJdQH/lUn4nURTvB1pHalTtyX1ArKU1WdL7iJeVdQCzLKQojmI+7V3gnYZ6Z3iIazl9BKSWHH1/0V7b3FDqfJ1qWdq09I1KTS4nt5ZUm22VIzuApABBx0Pj3GHpQtqZkg6gczbqMjzBEIBxe0qSpGutXRIspaRMtMzK0pGBzrT6xx5kZPmTD60MfY7JfiyPzRFWpYNmS6cRI5b1dsNVacaTslD60j4FGPVa9w1u16w1V7fqUxTp5r2XWVYOO8EdFA94OxjzV0f4cn/xlz84xL9B7JkNQdSqfbNTqD0lLPJW6tTKQVrCElRQM9CQDvvjwMMJNxVF4zSbslCeJXWEIT9kMsdsZNOY3/wBiGh4WNTqrqZZc5M11tgVSnzIYeWyjkS6kp5kq5e49QcbbRE+KiwrUt7h3VJ0WkS8k3SpphyWKE5XzKWEKKlHdRIVuSd8DwEav6H79rF07f98Z/MVFwalmXj/hymmlFke46puapN/WpVqbMOyc+zKOKamGVlDiClwEEEe8/HFeS3EprAxLoaNysO8gxzuU9gqPvPJuYnv0QD7abX/E3/z0wscccJvLXLO01deh0I4WL9r2oWm71WuNbLs9Lz7ksXWmw2HEhKFAlI2B9fG3hC88cU5cKNSZaj1CsvTdJEqmckpYpShLBUpSVA8oHMcoOCckA48YtzgN/emqf5Zc+aaipePP99mm/kZv512K+IVTil+6EYDuMr5/JAbM1u1MtOkN0mj3I4JJr9yamGG3w2PBJWkkJ8s4i6+GvXu9rq1MlLXumZlZ6Wn2nezWiWS0ttxCCsewACCEkbjwhTxFqcJv7/8AbX9KY/4dyO+H1S1JmlGLaG04u2G3uH+4y4kEthhaCe49u3v/AGwmNhau6h2NTvpdbtxOsyWSoS7zSHm0Hv5QsHl8dsQ6XFn/ANn+5v8A02P+IbjnpHmg6lI60nBWNxwt653remootm6piUnmJiVccadRLJaW2tAz9zgEEZ6jwiecawB0JnlEbonJYj/SAf8AMwuPBcMa9038TmfmzDJcaSFL0GqeATyzUsTgf5Uf/cV8Qlkj9Pyc8L52v3sILDO/RAR9ltrfiD3zghYo6B6+a2M6U1SlyL1tLq/p7C3QtM52PJyqAxjkVnrFGs5+QQ2314kl+Dx35UH6qD68SS/B478qD9VAWfvp8fqg4FK5Ivev9L5acA/9pz0gfFkfFChR0RsPVxq6NG61qMbfXItUxuaWJMzXOXQy3z+3yDHNnHQ484qP68WS/B698qD9TAwUqG9rK/qj4BpWZcTzOyMu0EfzewnOy/MSfjjz/XiyX4PXvlQfqYnGot6t3vwiVm8FU1VMRUJVSUS6ne0KcTQaHrcqc5Kc9O+AYiUEEECje6dPtyuoNuTLqgltqqSy1knoA6kkx0m1DRKv2FXZedmmZSXdpz7bj7yuVDYU2QVE9wGY5eAkEEHBHQiLJ1H1pvK+bPpdsVOYQzJybSUzJZyFTq0+ytz3ADbpnJ8MMTqw8v7qTFViZia8C07Lymsk3JvOJDk1SnW2d9lKStCiB/mpJ+CLs44mKa/o4kzlQZlZlmfadlGln1phQ5kqQkDwSoq8NoSm0K7UrXuWQuGkPdjOyLodaJGQcdQfEEZBHgTEg1e1Gr2pdzfTmtKQy20js5WUaJ7KXR3hOepJGSe/buAEZiLPGKX7qbhrLNt7jZ8FF5ytc0vRbTj4+mNDWpstk7qZWoqQoeIyVJ8sCN5qloHbF/agU+7KhNPy/ZBIn5VtO06E+xlWfU22JwcjA26wjlgXdXLHueWuG35rsJtjYpUModQcZQsd6Tj/AJjBhma3xdSTllNmjW7MN3K6ChaJghUswce2CDlfknA8/O8SS0mu5MIuNx2LQ4i9T6fpjY65WQW0K3OMlimyzYGWhjHakdyU93iQB4458KWtxxTjiipaiVKJ6knvjZXPX6xc9bma1XZ92en5lXM484d/IAdAB3AbCNbHKKd5pHW0kkgjp5phMNTWm1tzLKwptylSykkd/wC1JjmHFlymtd5yekw07lZhDMoCpAnEkh8S53LIP3uSd+uDjpHVvoa3OThc0zSazy1OGrlxtUCcbqUq9U3Fsrl8qSVLVzFKfHCiU7ZBxtDbaF8PNAtRi37pqrtRVc8s32zqA8Ay24tJBRy435QrHXqIS+za+9a90SFwS0hIT78i72zTM6hS2iseyohKkk4O436gRdv13GpH8S2p/qsx+vicPogkisS5y17DNcRdyUS2tI64/W2UTLU3Lqk2ZUqwX3HAQEjv23USOgSYhfA7MNPaK9khQKmKm+hY8CQlQ/sMKnrDqzdOqL8iu4USMs1JJUGmJFC0N8ysZWQtSiVbAdeg6dY+9JNXbp00p9YkqH6O61UmgAH0khh0bB1I8cEjB2OBnpGYarM3uJrSKRNeOFqVRrOHpebYecdpzPbtoXlTKwVABQ7sp5T8MOlZ0/LT9m0moy7iVSz8i06heduUoBzHL2pTk5Uqg/UKhNOzU3MOFx551XMtaickk95iwJbWa8ZbSQ6csTKW5HnKfSUkh4S5ySxn70k9euNukIqsJx3NlHNiJ7EV1Dl5CUvuuS1Ln2p+RRPvBiYazyrRzkgjPXwz022yN4nfCNMNS+vtvF1YSF9u2knxLC8D44qbvj20Oqz1DrUlWaY+WJ2SeS8w4PuVJOR7+kVgdFIzFee6H+4tmpR/Qa4G5qbYljytKZ7VWO0WlxKghPio4IAirvofc8wKZddNKx6QHpd8J7ykpWM/GP7RFCaw6rXLqfVWJmsluWk5ZADEjLk9khWPWXvuVHxPQbe/waTX9WNOLvauGjpbeIQpqYl3c8j7Z6pOOm4BB8QInD0cr3MmrikthgPogLNNUu15oTzIqKO2bMpuVqaVykLx3AFJG/XO3QwqUbi9bmrN4XNOXDXZozE7Nr5lHolCe5CR3JA2AjTxMIuN3udW0OtwEzDatLaxLhQ7RurrUpOdwC03j+4/FFfcfTVMVeVAmWJ9lypiSU1MyiSSttsK5m1HuGSpY8doqbRzVa4tMJqou0VEvMNz8v2bjL+eQODPI4Md6STt3gke6G1yq1GuVeaq1WnHZydmnC4886rKlKP/AO6DYDaLxeuaa4/FHLBWROzxgxZ3C5NsyWvVruzCglC33GQT98tpaUj4SQIrDMeiSmn5KdYnJV1TUww4lxpxJwpCgcgg9xBioSyy1Nmri0dF+JNmmzOiVzS9UqDMgyuUyh50+r2iVBSE4G5JUkDA8YXDhl0CpN92pMXPdyp9qTed7OnNy7gbK0pyFuEkHIJ2H9ExWurur11als02XrS2WJWSaSCxLghDz2MKdUPE+HQb46mJjQeKW+qHRZKj0y3bRYk5JlLDLYlZjZKRgfw8RFVbZkraUV2GX040GsawrpZuOhLqxnWULQkTEylaMKTg7BI8Ynd825SrttWoW9WkFcjOslt3lVylO4IUD3EEAg+IhO/rudSP4ktL/VJj9fH5XXxQ3TcmndUt6apMjI1Odw16bIFaEJYI9dPIpSiFEbZCuijsMQncos1aSspW8JCl0y6KlTqLUlVOny0wppibLfJ2yQcc2Mn4+/rtnEMP9ED+221vxB75wQsKesM99ED+221vxB75wRkU0tTZVegsgjMYEbK1qNN3FclNoMgkqmqhNNy7e2cFSgMnyGcn3RQGqlQu0OAxxbnqTFSljt98JmZwP90cwoRhsuOCrSlCsq0tN6YrkabQl9TQO6WWUdk0D5ElfwohTYGIIcHXtKrK4QLbtN0BubnRJyzzWdwoDt3PgC0AfCIoPhysld9as0mmONFdPll+mVA4yAy2QeU/0lcqP86LA45rwRW9RZO15Rzml6Ewe2IOQZh3lUoeeEhseR5hAMXqCCCBp6qNTpur1eTpUghLk5OPoYYQpYQFLUQAMkgDcjcxKdXdOazpnX5OjVqYlJh+ZkkTYVLKJSnmJBTuBuCk798R21qp9I7npVb7D0j6XzjUz2XPy9pyLCuXODjOMZwYcDS3XOg6s6hydt1TTWnsPPMOFE3MTKJsoCElfLhTKduvfGtXFV3JzU7l2EvEZh2NN7Os5d96vyCLcpoQwtDDZDYIbadY5ltpT0QOYE7AeHcIq7S/U6Vs7SmUM3oozVKOxM9m9WHXhyPPL6n12lZOEgYCsDAG20SpX9l7m+nli8RgCHP1hsqxTqXpfWJe2ae0xWZ8szcuhoNtvpKApsrQnAJBPw9DkRDtWqhQLA4tGas7acnVGpqVlyljtA0lt5w8hewEqBUAOhHfnrvGx1aT73Rjlpa8WLFBDx3paNos8T1jtC2aYG5qQmnFoQwEI7RocyHClOApQ3G4Pd4CFe4k5GUpmuV0SUhLty8uJlKw2gYSFLbSpWB5lRPwxCl25v2dFLW+CvYIbWw9TqXLiy7eruhstTKbVlNyNPnn1Jc7QcwTzpStkFQysE5VvzE5MbtNiWdSOMKnSspb8o3Lv0RVQbl0p5WWZgKUnnSjp0T06AnPWOla16+2pKlab3Evgh5qPeFi3DrRVdKJ/TKiNhgOoROFlpxL3InmOUdmOTbO/MdxFO/VramiWo15221p9JXAy5PDsnJic5S01ypWlrCm1jAKj57DOcCJUk65Voq6vgXuCHP15uWlUrQCl3bb1mUCTmLgbZbClSralyYdaKyUkI9ZQAIB2xnOO6PFw7PWjfGhdaocxZNOl/pJLKZW84EvKmHFtqUXgSkFCsjuJxgYIwISbWf/ABMT+XkTyMww2l2p0rZulUmZ3RRmp0ZmZ7N2suujleeX1UAtlWVYSBgKwMAbbRs+Na17XkKXa1z0CkS1MeqXaJeTLspaS4nkSpJUlIxzDJ38/IRuJJRRsNXTFmjBhruBVFvVSjXLSJ23ZGZm2XGX1zUwgO9qg8wSjlUDyhJSTt15vKJPSDp7rZpjdLq7Ep9EnqR2rIcYQ2VtrSgqStDiUpJGRukjG3fGT6FfFkxlmf1oSoDEZho5ujWxK8GNFr67aknXW5tiafSCUqmFiY7NZUv2hzIyPLO3SJjoNqlaeqF1u265pdRqWtiRL6XipuY5ggoRy4LSSNlDvPSLrVpbDPopeRK4IcHSmepl18Udx0+qWtRJZqgyr7FPZYZTyNlDqW1LxygKUoK6kbDYede0bVG19LK9dVrHTCmVkJrcwQ+7NpT6iXFBtASppYASMgYI6mIi00uVfuVK02vGhQEEOJxaViQt3TSkGg2rQpQXCOV2YEo2HWUcgUUpwnqQcc2QRvgZORs1VWwqdoTamq6tPadMrpUu22xKoUG+w53OzcKSQrnwvKhzZOTnIO8bs29nRl2k1urEojdWNa9WvO6JO3KG205PzZIbDrqW0gAZUSSe4AnAydthDDcaFu2t9SdsX1QqVLyD9SWEudi0lvtm1tdokrA25h49d/IQs9Ln5ymVKXqVPmXZWclXEusPNK5VNrByFA+IjE9Wnsa6pNbl6XlprpBp1Oy9C1Anr+crCpdLy5imtSyZR7PUtc4KsA5ScnOR0GRGhcleGzl/aqjqYhXcVIkyPzRF32nX7R4ltOzbFzdjIXfIt8yHEABaVjbt2h90g4HOju/qqhXNUNPbn06r66VcUiptClH0acbBLEykfdIV/eDgjO4jSS+rB0M0gvOyZq7aJXb2nZWV7UOSiDLomQtsc3IE8hBUQQRvvzCK69F4aEnee1Q/qyn6MfPCxqenTu/BL1R/s6DV+VidKj6rKwTyPe5JJB/mqJ7hG+4wNLDatzm86IwDb9Zd5nQ2PVlZlW5Hkle6h58w22yBF6Jb+ilWuyn09i5r29Hm5pthLKqZLpXlagkftvaEDc9eQ7d0Nbr7eelNsVamMaiWsmtTL7C1yqzTWpns0BWFDKyMZPcIR3TfbUO2vyvK/PJi/fogJ+yy1/xB75wQDNwdXeGX8Grf/wAflv0otPRuY0ouWmPXraVjSNEZpzq0Jn36WxLKSQjKyhSSSAEqwTt1I8YR/S2yavqDeUnbVIRhT55ph8pyiXaHtOK8h3DvJA6mGO4prxpOnmncho3ZpLK1y6UTpQRlqX68qiPu3TlSvInPtCANhcmu/D5X6oZ6uWdMViaCQ0mZmaMw6ooGcAFS843O3nGvZ1X4Z33kMs6YB11xQShCLelipRJwAAFZJhT5CTm6hOMyUjLPTU0+sIaZaQVrWo9EgDcnyENzolpLQ9JLdXqbqm9Ly9RlkdpLSyyFiTJ6bD23z0AGcd2TuALNvar2Po3p1O3bSrWptDnpxlLcvJsyjbLr75SShtfJ3JySrcgAHGds8/apPzdVqk3U6g+uYnJt5T77q91LWo5UT8Jiba6an1TU+7jUpnnl6VLZbpslzZDKO9SsbFasAk+4dAIgMDUfMEEEDTKRlQGQMnGT3Qx9j13RfR+ls3RSK3N3ZehkC0lhpC0yzbqx6xBKE8qe7JKjjOAMwt2YzG26pCleownD1rTRbamL8qN7OzDk3W+WcQWWypUw6CsFsdySecYztgHwEee79VbSqXC7SbEllTiq2h0JU0QSmXQ26VJUpZGFAoIAx/ZiKBxmCJdP29glld/uowPEBq5bt2WVY0vbjs+3W6UETLroBbEo4EhPIDjKlhSQQRtjHjgRHSCYsWt3lO3Hq5eE7LrStL7QDT7r0y9nPMpSG1AJSABg7nIxsIq0QGKi6k5Luyf7VEbO8ddrDneIC0K5IrcdotJZfZmKn2DiCe3Ry4DagFcqDgk8udzjoM0LrtdFIvHVetXHQ2ZhEjNOI5C8fWWUoSgqx9yDy5AO/wDcIQY+QMRFduCr7jIa1azWncM9pzOUj0yZeoMwzPzuUciU7oKmt9yocnUbeBPd6b+1ythPENQb4t1ubn6bT5H0KecKOTtW1lRJbSrBynnPXGSMdNytMYIzF3Tvm/uTlWXLxQ4t0aiaKWbck/qnbc6a9dFZlQliSZX6jSsAFawQC0Tgc2fW22G5MKRctWnrgr89XKm6HJ2efU+8oDAKlHJwO4eAjXqHnBEJJOy9i/NTtULRuLh2tCyJRyaVWJRMv6QSgpblS0ktkqOPW5gSQE52OTuMGcaeag6I6WabVWSt65Jm4KvOyqVTEuqUmG0zT4QU4SVtJCEesepzjxPVSxBiKfUpck5V08F+XZqnatS4WaLYrZmTXW3EpU0lBCJdLbpUFFR6gpOABk+OMR8cRuqdq31p9Z1LpAm1VGRZS7NFSeVDB5AhTZyPXVkZyNsY8dqHjJjGru93Zsemq2GP4VL10y05oFRrNxXc83W6gORVPak31oQ2gnkBUGykrJzvzYwoZ8vy0U1isy2qbqGKpJPyLVZfVNU+Rl0lRWFcyeyCuiSOYHJwMZ8MQueIzGy6rvxRKSX3svqd1UtJ7hQl9PnEza66HS2hlIISgJf7VLql4wU4ITgbk56dYjvCve1BsPU1ysXG+uXkHae9Ll1LZXyqJSoZA335Me8iKnUMwRsW4ycvJrinFRJjd16zLuptdu20ZuoUgVKZfWhQd5XQ277QJT45Ow6bb7ZiHqJUoqUSSe8x8iMxMEopJFSeZ2X7xF6o2jfFgWfQaKuYXPyTbbk044hSW5Y9nyKbO2VHIBynbA2znAkV5X5pVO6W2hpVT7tUaQ280K1PpkJlPZtNArVypU3zFS3DtgEDvhYRAY3zy7IUe3CoYnik1PsO5rFt6zbKmXKmxTlJWZpxp1ospQ2W0owtKSokHJOMbeey6CM4z3wARKWrfkrZLweyk1GfpNTl6lTJt6TnJdYWy+yspWhQ7wR0hptP9frQv2gCy9ZqbKftqQn09SD6O6RsFK5d2V/z07bn2YU+MGKAz2ovCuuZZFb0wrsrUae8ntG5SafBJH+TeT6qx4c2MffGJnojP1yZtyY0Y1lt2el0rZMvT5ibbPZTLQ6Mh0ZSVowCgg9wHVIyq1iahXnYz4cti4ZyRb5uZUvzc7Cz/ObVlJPnjMXjanF5cMq0lm5rWp9TPTtZN5UsojxIIWCfdiBJBbs0vq+mGt9t0+aC5ilTNYll0+eKNnkB5HqnGwWnI5h8I2IizON6i1W4tSLMolFknJyfm5V1tllsZKj2g+IAbknYAEnaN+7xS6X1tplm4rOrDoZdS+0l2Ul5hDbifZWkqWMKHcQMiPbOcUmk6Z9FTTb9efqLbSmW5gU9jtUtkglIWXMhJIBIHhAH7Uek0rh10t7GnyS6/fNXSAlqWYU4uYeA2ASkcwZbz17ye4qAFO23w9ap6hV9+4LwWKMJ90vTE1UCFzCyepSyk5HgEqKMAYidXDxgywCk29ZTq1Eeq9PzYTjwyhCTn+sIp2/df9T7uQth6uikya85lqWgsJPkV5KyPIqx5QBfapvRXhylHUyH+HrtKORQ50uTOT3KUBysIz1AHMRjZWIWXVzU66NSq36dXZkIlWifRJBrIZlwfAd6iOqjufIYAheSpSlKUVEnJJO5MBgakYggggaEEEEAf//Z" alt="ברדה הנדסה">
+            <img src="data:image/png;base64,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" alt="ברדה הנדסה">
         </div>
-        
-        <h1>ממיר DXF</h1>
-        <p class="subtitle">המרת קבצי DXF לפורמט KML או GeoJSON</p>
-        
-        <div class="info-box">
-            <strong>💡 שים לב:</strong><br>
-            • <strong>KML</strong> - לצפייה ב-Google Earth (קואורדינטות WGS84)<br>
-            • <strong>GeoJSON</strong> - לתוכנות GIS (שומר קואורדינטות רשת ישראל)
-        </div>
-        
+        <h1>ממיר DWG/DXF</h1>
+        <p class="subtitle"><span class="badge-new">חדש!</span> המרת קבצי DWG ו-DXF לפורמט KML או GeoJSON</p>
+        <div class="info-box"><strong>💡 שים לב:</strong><br>• <strong>KML</strong> - לצפייה ב-Google Earth (קואורדינטות WGS84)<br>• <strong>GeoJSON</strong> - לתוכנות GIS (שומר קואורדינטות רשת ישראל)</div>
         <form id="convertForm">
             <div class="form-group">
-                <label>📁 קובץ DXF</label>
+                <label>📁 קובץ DWG או DXF</label>
                 <div class="file-upload" id="dropZone">
                     <div class="file-upload-icon" id="uploadIcon">📄</div>
                     <div class="file-upload-text" id="uploadText">גרור קובץ לכאן או לחץ לבחירה</div>
-                    <input type="file" id="fileInput" accept=".dxf" required>
+                    <div class="file-types"><span class="new">DWG</span><span>DXF</span></div>
+                    <input type="file" id="fileInput" accept=".dxf,.dwg" required>
                 </div>
                 <div class="file-name" id="fileName"></div>
             </div>
-            
             <div class="form-group">
                 <label>📍 מערכת קואורדינטות מקור</label>
                 <select id="sourceEpsg">
@@ -383,389 +93,101 @@
                 </select>
                 <p class="help-text">רוב קבצי המדידה בישראל ב-EPSG:6991 (Israel 2005)</p>
             </div>
-            
             <div class="form-group">
                 <label>📤 פורמט פלט</label>
                 <div class="format-options">
-                    <label class="format-option selected" id="optKml">
-                        <input type="radio" name="format" value="kml" checked>
-                        <div class="icon">🌍</div>
-                        <div class="name">KML</div>
-                        <div class="desc">Google Earth</div>
-                    </label>
-                    <label class="format-option" id="optGeojson">
-                        <input type="radio" name="format" value="geojson">
-                        <div class="icon">📊</div>
-                        <div class="name">GeoJSON</div>
-                        <div class="desc">GIS / רשת ישראל</div>
-                    </label>
+                    <label class="format-option selected" id="optKml"><input type="radio" name="format" value="kml" checked><div class="icon">🌍</div><div class="name">KML</div><div class="desc">Google Earth</div></label>
+                    <label class="format-option" id="optGeojson"><input type="radio" name="format" value="geojson"><div class="icon">📊</div><div class="name">GeoJSON</div><div class="desc">GIS / רשת ישראל</div></label>
                 </div>
             </div>
-            
             <button type="submit" id="submitBtn" disabled>🔄 המר קובץ</button>
         </form>
-        
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>ממיר את הקובץ...</p>
-        </div>
-        
+        <div class="loading" id="loading"><div class="spinner"></div><p id="loadingText">ממיר את הקובץ...</p></div>
         <div class="result" id="result"></div>
-        
-        <footer>
-            <div>מאיר ברדה - מודד מוסמך מס׳ 1609</div>
-            <div class="footer-contact">
-                📞 <a href="tel:0528461976">052-846-1976</a>
-                &nbsp;|&nbsp;
-                🌐 <a href="https://barda-eng.co.il" target="_blank">barda-eng.co.il</a>
-            </div>
-        </footer>
+        <footer><div>מאיר ברדה - מודד מוסמך מס׳ 1609</div><div class="footer-contact">📞 <a href="tel:0528461976">052-846-1976</a> | 🌐 <a href="https://barda-eng.co.il" target="_blank">barda-eng.co.il</a></div></footer>
     </div>
-    
     <script>
-        // Define coordinate systems using Proj4
+        const DWG_API = "https://dwg-converter-166232646812.me-west1.run.app/convert";
         proj4.defs([
             ["EPSG:6991", "+proj=tmerc +lat_0=31.7343936111111 +lon_0=35.2045169444444 +k=1.0000067 +x_0=219529.584 +y_0=626907.39 +ellps=GRS80 +towgs84=24.0024,17.1032,17.8444,-0.33009,-1.85269,1.66969,-5.4248 +units=m +no_defs"],
             ["EPSG:2039", "+proj=tmerc +lat_0=31.7343936111111 +lon_0=35.2045169444444 +k=1.0000067 +x_0=219529.584 +y_0=626907.39 +ellps=GRS80 +towgs84=23.772,17.49,17.859,-0.3132,-1.85274,1.67299,-5.4262 +units=m +no_defs"],
             ["EPSG:32636", "+proj=utm +zone=36 +datum=WGS84 +units=m +no_defs"],
             ["EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs"]
         ]);
-
-        // DOM elements
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const fileName = document.getElementById('fileName');
-        const uploadIcon = document.getElementById('uploadIcon');
-        const uploadText = document.getElementById('uploadText');
-        const form = document.getElementById('convertForm');
-        const loading = document.getElementById('loading');
-        const result = document.getElementById('result');
-        const submitBtn = document.getElementById('submitBtn');
-        const optKml = document.getElementById('optKml');
-        const optGeojson = document.getElementById('optGeojson');
-
-        let currentFile = null;
-        let parsedPolygons = [];
-
-        // Format selection
-        optKml.addEventListener('click', () => {
-            optKml.classList.add('selected');
-            optGeojson.classList.remove('selected');
-        });
-        optGeojson.addEventListener('click', () => {
-            optGeojson.classList.add('selected');
-            optKml.classList.remove('selected');
-        });
-
-        // Drag and drop handling
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-        });
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            const files = e.dataTransfer.files;
-            if (files.length) {
-                handleFile(files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) {
-                handleFile(e.target.files[0]);
-            }
-        });
-
+        const dropZone = document.getElementById('dropZone'), fileInput = document.getElementById('fileInput'), fileName = document.getElementById('fileName'), uploadIcon = document.getElementById('uploadIcon'), uploadText = document.getElementById('uploadText'), form = document.getElementById('convertForm'), loading = document.getElementById('loading'), loadingText = document.getElementById('loadingText'), result = document.getElementById('result'), submitBtn = document.getElementById('submitBtn'), optKml = document.getElementById('optKml'), optGeojson = document.getElementById('optGeojson');
+        let currentFile = null, parsedPolygons = [], isDwg = false;
+        optKml.addEventListener('click', () => { optKml.classList.add('selected'); optGeojson.classList.remove('selected'); });
+        optGeojson.addEventListener('click', () => { optGeojson.classList.add('selected'); optKml.classList.remove('selected'); });
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => { dropZone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }, false); });
+        ['dragenter', 'dragover'].forEach(e => { dropZone.addEventListener(e, () => dropZone.classList.add('dragover'), false); });
+        ['dragleave', 'drop'].forEach(e => { dropZone.addEventListener(e, () => dropZone.classList.remove('dragover'), false); });
+        dropZone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
         function handleFile(file) {
-            if (!file.name.toLowerCase().endsWith('.dxf')) {
-                alert('יש לבחור קובץ DXF בלבד');
-                return;
-            }
-            
-            currentFile = file;
-            fileName.textContent = '✅ ' + file.name;
-            fileName.classList.add('show');
-            dropZone.classList.add('has-file');
-            uploadIcon.textContent = '✅';
-            uploadText.textContent = 'קובץ נטען בהצלחה';
-            
-            // Parse the DXF file
-            parseDXF(file);
+            const ext = file.name.toLowerCase().split('.').pop();
+            if (ext !== 'dxf' && ext !== 'dwg') { alert('יש לבחור קובץ DXF או DWG בלבד'); return; }
+            currentFile = file; isDwg = ext === 'dwg';
+            fileName.textContent = '✅ ' + file.name + (isDwg ? ' (DWG - יומר)' : '');
+            fileName.classList.add('show'); dropZone.classList.add('has-file');
+            uploadIcon.textContent = '✅'; uploadText.textContent = 'קובץ נטען בהצלחה';
+            if (isDwg) { submitBtn.disabled = false; } else { parseDXF(file); }
         }
-
-        // Simple DXF parser for polygons
         function parseDXF(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const content = e.target.result;
-                parsedPolygons = extractPolygons(content);
-                
-                if (parsedPolygons.length > 0) {
-                    submitBtn.disabled = false;
-                    fileName.textContent = `✅ ${file.name} (${parsedPolygons.length} פוליגונים)`;
-                } else {
-                    fileName.textContent = `⚠️ ${file.name} - לא נמצאו פוליגונים`;
-                    submitBtn.disabled = true;
-                }
+                parsedPolygons = extractPolygons(e.target.result);
+                if (parsedPolygons.length > 0) { submitBtn.disabled = false; fileName.textContent = '✅ ' + file.name + ' (' + parsedPolygons.length + ' פוליגונים)'; }
+                else { fileName.textContent = '⚠️ ' + file.name + ' - לא נמצאו פוליגונים'; submitBtn.disabled = true; }
             };
             reader.readAsText(file, 'windows-1255');
         }
-
-        function extractPolygons(dxfContent) {
-            const polygons = [];
-            const lines = dxfContent.split('\n').map(l => l.trim());
-            
-            let i = 0;
-            let currentLayer = '0';
-            let currentCoords = [];
-            let inPolyline = false;
-            let inLwPolyline = false;
-            
+        function extractPolygons(dxf) {
+            const polygons = [], lines = dxf.split('\n').map(l => l.trim());
+            let i = 0, layer = '0', coords = [], inPoly = false, inLw = false;
             while (i < lines.length) {
-                const code = parseInt(lines[i]);
-                const value = lines[i + 1];
-                
-                if (code === 8) {
-                    currentLayer = value;
-                }
-                
-                if (code === 0 && value === 'LWPOLYLINE') {
-                    if (currentCoords.length >= 3) {
-                        polygons.push({ coords: [...currentCoords], layer: currentLayer, type: 'LWPOLYLINE' });
-                    }
-                    currentCoords = [];
-                    inLwPolyline = true;
-                    inPolyline = false;
-                }
-                
-                if (code === 0 && value === 'POLYLINE') {
-                    if (currentCoords.length >= 3) {
-                        polygons.push({ coords: [...currentCoords], layer: currentLayer, type: 'POLYLINE' });
-                    }
-                    currentCoords = [];
-                    inPolyline = true;
-                    inLwPolyline = false;
-                }
-                
-                if (code === 0 && value === 'VERTEX' && inPolyline) {
-                    let x = null, y = null;
-                    for (let j = i + 2; j < Math.min(i + 20, lines.length); j += 2) {
-                        const vCode = parseInt(lines[j]);
-                        const vValue = parseFloat(lines[j + 1]);
-                        if (vCode === 10) x = vValue;
-                        if (vCode === 20) y = vValue;
-                        if (vCode === 0) break;
-                    }
-                    if (x !== null && y !== null) {
-                        currentCoords.push([x, y]);
-                    }
-                }
-                
-                if (code === 0 && value === 'SEQEND') {
-                    if (currentCoords.length >= 3) {
-                        polygons.push({ coords: [...currentCoords], layer: currentLayer, type: 'POLYLINE' });
-                    }
-                    currentCoords = [];
-                    inPolyline = false;
-                }
-                
-                if (code === 10 && inLwPolyline) {
-                    const x = parseFloat(value);
-                    if (parseInt(lines[i + 2]) === 20) {
-                        const y = parseFloat(lines[i + 3]);
-                        currentCoords.push([x, y]);
-                    }
-                }
-                
-                if (code === 0 && value !== 'LWPOLYLINE' && value !== 'VERTEX' && inLwPolyline) {
-                    if (currentCoords.length >= 3) {
-                        polygons.push({ coords: [...currentCoords], layer: currentLayer, type: 'LWPOLYLINE' });
-                    }
-                    currentCoords = [];
-                    inLwPolyline = false;
-                }
-                
+                const code = parseInt(lines[i]), val = lines[i + 1];
+                if (code === 8) layer = val;
+                if (code === 0 && val === 'LWPOLYLINE') { if (coords.length >= 3) polygons.push({ coords: [...coords], layer, type: 'LWPOLYLINE' }); coords = []; inLw = true; inPoly = false; }
+                if (code === 0 && val === 'POLYLINE') { if (coords.length >= 3) polygons.push({ coords: [...coords], layer, type: 'POLYLINE' }); coords = []; inPoly = true; inLw = false; }
+                if (code === 0 && val === 'VERTEX' && inPoly) { let x = null, y = null; for (let j = i + 2; j < Math.min(i + 20, lines.length); j += 2) { const c = parseInt(lines[j]), v = parseFloat(lines[j + 1]); if (c === 10) x = v; if (c === 20) y = v; if (c === 0) break; } if (x !== null && y !== null) coords.push([x, y]); }
+                if (code === 0 && val === 'SEQEND') { if (coords.length >= 3) polygons.push({ coords: [...coords], layer, type: 'POLYLINE' }); coords = []; inPoly = false; }
+                if (code === 10 && inLw) { const x = parseFloat(val); if (parseInt(lines[i + 2]) === 20) coords.push([x, parseFloat(lines[i + 3])]); }
+                if (code === 0 && val !== 'LWPOLYLINE' && val !== 'VERTEX' && inLw) { if (coords.length >= 3) polygons.push({ coords: [...coords], layer, type: 'LWPOLYLINE' }); coords = []; inLw = false; }
                 i += 2;
             }
-            
-            if (currentCoords.length >= 3) {
-                polygons.push({ coords: [...currentCoords], layer: currentLayer, type: inLwPolyline ? 'LWPOLYLINE' : 'POLYLINE' });
-            }
-            
+            if (coords.length >= 3) polygons.push({ coords: [...coords], layer, type: inLw ? 'LWPOLYLINE' : 'POLYLINE' });
             return polygons;
         }
-
-        // Form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (parsedPolygons.length === 0) {
-                alert('לא נמצאו פוליגונים בקובץ');
-                return;
-            }
-            
-            loading.classList.add('show');
-            result.className = 'result';
-            result.innerHTML = '';
-            submitBtn.disabled = true;
-            
+        async function convertDwg(file) {
+            const fd = new FormData(); fd.append('file', file);
+            const res = await fetch(DWG_API, { method: 'POST', body: fd });
+            if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'DWG conversion failed'); }
+            return await res.text();
+        }
+        form.addEventListener('submit', async e => {
+            e.preventDefault(); loading.classList.add('show'); result.className = 'result'; result.innerHTML = ''; submitBtn.disabled = true;
             try {
-                const sourceEpsg = document.getElementById('sourceEpsg').value;
-                const format = document.querySelector('input[name="format"]:checked').value;
-                
-                let outputContent, outputFilename, mimeType;
-                
-                if (format === 'kml') {
-                    outputContent = convertToKML(parsedPolygons, sourceEpsg);
-                    outputFilename = currentFile.name.replace('.dxf', '.kml').replace('.DXF', '.kml');
-                    mimeType = 'application/vnd.google-earth.kml+xml';
-                } else {
-                    outputContent = convertToGeoJSON(parsedPolygons, sourceEpsg);
-                    outputFilename = currentFile.name.replace('.dxf', '.geojson').replace('.DXF', '.geojson');
-                    mimeType = 'application/geo+json';
-                }
-                
-                const blob = new Blob([outputContent], { type: mimeType });
-                const url = URL.createObjectURL(blob);
-                
+                if (isDwg) { loadingText.textContent = 'ממיר DWG ל-DXF...'; const dxf = await convertDwg(currentFile); parsedPolygons = extractPolygons(dxf); if (!parsedPolygons.length) throw new Error('לא נמצאו פוליגונים'); }
+                loadingText.textContent = 'יוצר קובץ...';
+                const epsg = document.getElementById('sourceEpsg').value, fmt = document.querySelector('input[name="format"]:checked').value, base = currentFile.name.replace(/\.(dwg|dxf)$/i, '');
+                let out, fn, mime;
+                if (fmt === 'kml') { out = toKML(parsedPolygons, epsg, base); fn = base + '.kml'; mime = 'application/vnd.google-earth.kml+xml'; }
+                else { out = toGeoJSON(parsedPolygons, epsg, base); fn = base + '.geojson'; mime = 'application/geo+json'; }
+                const url = URL.createObjectURL(new Blob([out], { type: mime }));
                 result.className = 'result success';
-                result.innerHTML = `
-                    <h3>✅ ההמרה הצליחה!</h3>
-                    <div class="stats">
-                        <div class="stat">
-                            <div class="stat-value">${parsedPolygons.length}</div>
-                            <div class="stat-label">פוליגונים</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">${format.toUpperCase()}</div>
-                            <div class="stat-label">פורמט</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-value">${format === 'kml' ? 'WGS84' : 'IL-' + sourceEpsg}</div>
-                            <div class="stat-label">קואורדינטות</div>
-                        </div>
-                    </div>
-                    <a href="${url}" download="${outputFilename}" class="download-btn">
-                        📥 הורד ${outputFilename}
-                    </a>
-                `;
-                
-            } catch (error) {
-                result.className = 'result error';
-                result.innerHTML = `
-                    <h3>❌ שגיאה</h3>
-                    <p>${error.message}</p>
-                `;
-            }
-            
-            loading.classList.remove('show');
-            submitBtn.disabled = false;
+                result.innerHTML = '<h3>✅ ההמרה הצליחה!</h3><div class="stats"><div class="stat"><div class="stat-value">' + parsedPolygons.length + '</div><div class="stat-label">פוליגונים</div></div><div class="stat"><div class="stat-value">' + fmt.toUpperCase() + '</div><div class="stat-label">פורמט</div></div></div><a href="' + url + '" download="' + fn + '" class="download-btn">📥 הורד ' + fn + '</a>';
+            } catch (err) { result.className = 'result error'; result.innerHTML = '<h3>❌ שגיאה</h3><p>' + err.message + '</p>'; }
+            loading.classList.remove('show'); submitBtn.disabled = false;
         });
-
-        function transformCoords(coords, sourceEpsg) {
-            const source = `EPSG:${sourceEpsg}`;
-            const target = 'EPSG:4326';
-            
-            return coords.map(([x, y]) => {
-                const [lon, lat] = proj4(source, target, [x, y]);
-                return [lon, lat];
-            });
+        function transform(coords, epsg) { return coords.map(([x, y]) => proj4('EPSG:' + epsg, 'EPSG:4326', [x, y])); }
+        function toKML(polys, epsg, name) {
+            let k = '<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n<name>SurveyArea</name>\n<Style id="s"><LineStyle><color>ff0000ff</color><width>2</width></LineStyle><PolyStyle><color>4d0000ff</color></PolyStyle></Style>\n';
+            polys.forEach((p, i) => { let c = transform(p.coords, epsg); if (c.length && (c[0][0] !== c[c.length-1][0] || c[0][1] !== c[c.length-1][1])) c.push(c[0]); k += '<Placemark><name>Area_' + (i+1) + '</name><styleUrl>#s</styleUrl><Polygon><outerBoundaryIs><LinearRing><coordinates>' + c.map(([lon,lat]) => lon+','+lat+',0').join(' ') + '</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark>\n'; });
+            return k + '</Document>\n</kml>';
         }
-
-        function convertToKML(polygons, sourceEpsg) {
-            let kml = `<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-<Document>
-    <name>${currentFile.name}</name>
-    <Style id="polyStyle">
-        <LineStyle>
-            <color>ff0000ff</color>
-            <width>2</width>
-        </LineStyle>
-        <PolyStyle>
-            <color>4d0000ff</color>
-        </PolyStyle>
-    </Style>
-`;
-            
-            polygons.forEach((poly, idx) => {
-                const wgs84Coords = transformCoords(poly.coords, sourceEpsg);
-                
-                if (wgs84Coords.length > 0 && 
-                    (wgs84Coords[0][0] !== wgs84Coords[wgs84Coords.length-1][0] ||
-                     wgs84Coords[0][1] !== wgs84Coords[wgs84Coords.length-1][1])) {
-                    wgs84Coords.push(wgs84Coords[0]);
-                }
-                
-                const coordString = wgs84Coords.map(([lon, lat]) => `${lon},${lat},0`).join(' ');
-                
-                kml += `
-    <Placemark>
-        <name>${poly.layer}_${idx + 1}</name>
-        <description>Layer: ${poly.layer} | Type: ${poly.type}</description>
-        <styleUrl>#polyStyle</styleUrl>
-        <Polygon>
-            <outerBoundaryIs>
-                <LinearRing>
-                    <coordinates>${coordString}</coordinates>
-                </LinearRing>
-            </outerBoundaryIs>
-        </Polygon>
-    </Placemark>`;
-            });
-            
-            kml += `
-</Document>
-</kml>`;
-            
-            return kml;
-        }
-
-        function convertToGeoJSON(polygons, sourceEpsg) {
-            const features = polygons.map((poly, idx) => {
-                let coords = poly.coords.map(([x, y]) => [x, y]);
-                
-                if (coords.length > 0 && 
-                    (coords[0][0] !== coords[coords.length-1][0] ||
-                     coords[0][1] !== coords[coords.length-1][1])) {
-                    coords.push(coords[0]);
-                }
-                
-                return {
-                    type: "Feature",
-                    properties: {
-                        name: `${poly.layer}_${idx + 1}`,
-                        layer: poly.layer,
-                        type: poly.type
-                    },
-                    geometry: {
-                        type: "Polygon",
-                        coordinates: [coords]
-                    }
-                };
-            });
-            
-            return JSON.stringify({
-                type: "FeatureCollection",
-                name: currentFile.name.replace('.dxf', '').replace('.DXF', ''),
-                crs: {
-                    type: "name",
-                    properties: {
-                        name: `urn:ogc:def:crs:EPSG::${sourceEpsg}`
-                    }
-                },
-                features: features
-            }, null, 2);
+        function toGeoJSON(polys, epsg, name) {
+            const f = polys.map((p, i) => { let c = p.coords.map(([x,y]) => [x,y]); if (c.length && (c[0][0] !== c[c.length-1][0] || c[0][1] !== c[c.length-1][1])) c.push(c[0]); return { type: "Feature", properties: { name: p.layer + '_' + (i+1), layer: p.layer }, geometry: { type: "Polygon", coordinates: [c] } }; });
+            return JSON.stringify({ type: "FeatureCollection", name, crs: { type: "name", properties: { name: "urn:ogc:def:crs:EPSG::" + epsg } }, features: f }, null, 2);
         }
     </script>
 </body>
