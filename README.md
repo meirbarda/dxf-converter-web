@@ -13,7 +13,8 @@
 - ✅ **המרה ל-KML** - לצפייה ב-Google Earth
 - ✅ **המרה ל-GeoJSON** - שומר קואורדינטות רשת ישראל
 - ✅ **גרירה ושחרור** - ממשק פשוט בעברית
-- ✅ **פרטיות מלאה** - הכל רץ במחשב שלך, אין העלאה לשרת
+- ✅ **עיבוד DXF מקומי** - קבצי DXF מעובדים כולם בדפדפן שלך, ללא העלאה לשרת
+- ℹ️ **קבצי DWG** - מועלים לשרת המרה המופעל על ידי הנדסת ברדה ומעובדים לצורך ההמרה בלבד
 
 ## 🚀 שימוש
 
@@ -53,7 +54,9 @@ cd dxf-converter
 
 ## 📄 רישיון
 
-MIT License - שימוש חופשי
+© ברדה הנדסה (Barda Engineering). כל הזכויות שמורות. שימוש, העתקה, שינוי או הפצה של הקוד מחייבים אישור בכתב ממאיר ברדה.
+
+© Barda Engineering. All rights reserved. Use, copying, modification, or distribution of this code requires written permission from Meir Barda.
 
 ---
 
